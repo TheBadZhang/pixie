@@ -16,6 +16,7 @@
 extern SPI_HandleTypeDef hspi1;
 extern SPI_HandleTypeDef hspi2;
 
+extern TIM_HandleTypeDef htim16;
 extern TIM_HandleTypeDef htim17;
 
 #endif

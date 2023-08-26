@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cmath>
 
-unsigned char pixie_output_data[256][10] = {
+unsigned char pixie_output_data[10] = {
 	0x20,0x40,0x40,0x20,0x08,
 	0x02,0x01,0x01,0x02,0x08,
 };
@@ -12,44 +12,26 @@ unsigned char pixie_map[10][7] = {
 	#include "BMP.dat"
 };
 
-
-
-void pixiw_map_pwm (void) {
-	static unsigned char pixie_map_count = 0;
-	for (int i = 0; i < 10; i++) {
-		unsigned char dat = 0x00;
-		for (int j = 0; j < 7; j++) {
-			if (pixie_map_count < pixie_map[i][j]) {
-				dat |= (1 << j);
-			}
-		}
-		pixie_output_data[pixie_map_count][i] = dat;
-	}
-	pixie_map_count ++;
-}
-
 int t = 0;
 
 extern unsigned char font_0507 [][5];
+extern unsigned int font_0507_size;
 
 void writeChar(char ch1, char ch2) {
 	unsigned char ch11 = ch1 - 0x20;
 	unsigned char ch22 = ch2 - 0x20;
 	for (int i = 0; i < 5; i++) {
-		pixie_output_data[0][i] = font_0507[ch11][i];
+		pixie_output_data[i] = font_0507[ch11][i];
 	}
 	for (int i = 0; i < 5; i++) {
-		pixie_output_data[0][i+5] = font_0507[ch22][i];
+		pixie_output_data[i+5] = font_0507[ch22][i];
 	}
 }
 
 void core(void) {
 
+	HAL_TIM_Base_Start_IT(&htim16);
 	HAL_TIM_Base_Start_IT(&htim17);
-
-	for (int i = 0; i < 256 ; i ++) {
-		pixiw_map_pwm();
-	}
 
 	while (true) {
 		t ++;
@@ -73,7 +55,8 @@ void setR(unsigned char dat) {
 	if (dat & 0x40) clr(R7); else set(R7);
 	// if (dat & 0x80) set(LTP)
 }
-int select_frame = 0;
+
+int sel = 0, sel2 = 0;
 void selectC(void) {
 	static int select_c = 0;
 	setR(0x00);
@@ -89,26 +72,32 @@ void selectC(void) {
 		case 8: set(LTP2C4); clr(LTP2C3); break;
 		case 9: set(LTP2C5); clr(LTP2C4); break;
 	}
-	setR(pixie_output_data[select_frame][select_c]);
+	// setR(pixie_output_data[select_c]);
+	setR(*(font_0507[0]+select_c+sel));
 	// setR(pixie_output_data[(select_c+t)%10]);
 	// setR();
 	// setR((1 << static_cast<unsigned char>((sin(t) + 1.0) / 2.0)*7));
 	select_c++;
 	if (select_c > 9) {
 		select_c = 0;
-		pixiw_map_pwm();
 	}
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	static int frame = 0;
+	static bool flag = false;
 	if (htim == (&htim17)) {
-		frame++;
-		if (frame > 9) {
-			select_frame ++;
-			if (select_frame > 255) select_frame = 0;
-		}
 		selectC();
+	} else if (htim == &htim16) {
+		if (flag) {
+			sel = (sel+1)%(font_0507_size-5);
+			if ((sel)%5 == 0) flag = false;
+		} else {
+			sel2 ++;
+			if (sel2 == 10) {
+				sel2 = 0;
+				flag = true;
+			}
+		}
 	}
 }
 
