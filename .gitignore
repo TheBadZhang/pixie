@@ -1,0 +1,8 @@
+*.zip
+fp-info-cache
+*autosave*
+*.lck
+hardware/production
+hardware/bom
+software/Drivers/CMSIS
+software/Drivers/STM32G0xx_HAL_Driver
