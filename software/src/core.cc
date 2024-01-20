@@ -17,20 +17,10 @@ int t = 0;
 extern unsigned char font_0507 [][5];
 extern unsigned int font_0507_size;
 
-void writeChar(char ch1, char ch2) {
-	unsigned char ch11 = ch1 - 0x20;
-	unsigned char ch22 = ch2 - 0x20;
-	for (int i = 0; i < 5; i++) {
-		pixie_output_data[i] = font_0507[ch11][i];
-	}
-	for (int i = 0; i < 5; i++) {
-		pixie_output_data[i+5] = font_0507[ch22][i];
-	}
-}
 
 void core(void) {
 
-	HAL_TIM_Base_Start_IT(&htim16);
+	// HAL_TIM_Base_Start_IT(&htim16);
 	HAL_TIM_Base_Start_IT(&htim17);
 
 	while (true) {
@@ -43,7 +33,6 @@ void core(void) {
 	}
 
 }
-
 
 void setR(unsigned char dat) {
 	if (dat & 0x01) clr(R1); else set(R1);
@@ -72,11 +61,7 @@ void selectC(void) {
 		case 8: set(LTP2C4); clr(LTP2C3); break;
 		case 9: set(LTP2C5); clr(LTP2C4); break;
 	}
-	// setR(pixie_output_data[select_c]);
 	setR(*(font_0507[0]+select_c+sel));
-	// setR(pixie_output_data[(select_c+t)%10]);
-	// setR();
-	// setR((1 << static_cast<unsigned char>((sin(t) + 1.0) / 2.0)*7));
 	select_c++;
 	if (select_c > 9) {
 		select_c = 0;
@@ -87,17 +72,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	static bool flag = false;
 	if (htim == (&htim17)) {
 		selectC();
-	} else if (htim == &htim16) {
-		if (flag) {
-			sel = (sel+1)%(font_0507_size-5);
-			if ((sel)%5 == 0) flag = false;
-		} else {
-			sel2 ++;
-			if (sel2 == 10) {
-				sel2 = 0;
-				flag = true;
-			}
-		}
 	}
 }
 

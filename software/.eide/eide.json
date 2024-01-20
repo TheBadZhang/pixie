@@ -30,7 +30,8 @@
         "codebase/elib/device/TFT_eSPI/st7302",
         "codebase/elib/device/TFT_eSPI/st7735",
         "codebase/elib/device",
-        "codebase/elib/connect"
+        "codebase/elib/connect",
+        "codebase/lib"
       ],
       "toolchain": "GCC",
       "compileConfig": {
@@ -73,7 +74,7 @@
           "bin": "",
           "targetName": "cortex_m",
           "baseAddr": "0x08000000",
-          "speed": "4M",
+          "speed": "10K",
           "config": ".eide/debug.pyocd.yaml"
         }
       },
